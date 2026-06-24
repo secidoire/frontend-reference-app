@@ -30,7 +30,7 @@
 | 1   | Next.js + TypeScript 土台 | package.json / tsconfig / next.config / layout / ルーティング薄皮                                                              | ✅    |
 | 2   | MUI + テーマ              | Material UI 導入、ThemeProvider、AppRouterCache、基本テーマ                                                                    | ✅    |
 | 3   | OpenAPI定義 + 型生成      | `docs/openapi.yaml` 作成、openapi-typescript で `src/types/api.ts` 生成、openapi-fetch で `services/apiClient`、ドメイン型導出 | ✅    |
-| 4   | データ層規約（RSC/Actions） | Server Components で読み取り・Server Actions で更新する規約を確立（`api/`=server fetch, `actions/`=mutation+revalidate）。React Query は不採用 | ⬜    |
+| 4   | データ層規約（RSC/Actions） | Server Components で読み取り・Server Actions で更新する規約を確立（`api/`=server fetch, `actions/`=mutation+revalidate）。React Query は不採用 | ✅    |
 | 5   | server/（Express）        | インメモリデータ + REST API（OpenAPI契約を実装）                                                                               | ✅    |
 | 6   | MSW                       | 生成型で handlers / fixtures、browser.ts / server.ts                                                                           | ⬜    |
 | 7   | Vitest                    | 設定、Testing Library、MSW結合                                                                                                 | ⬜    |
@@ -68,3 +68,4 @@
 | 2026-06-24 | #3       | OpenAPI(`docs/openapi.yaml`) 作成、openapi-typescript で `src/types/api.ts` 生成（`npm run gen:api`）、openapi-fetch の `services/apiClient`、各featureのドメイン型を生成型から導出 |
 | 2026-06-24 | 方針変更 | openapi-typescript等のpeerが `^5` のため **TypeScript を 6.0.3 → 5.9.3** へ。TS6での生成・型チェックは動作確認済みだが、エコシステム準拠を優先 |
 | 2026-06-24 | 順序変更 | #4(データ層規約) は叩く先が必要なため **#5(Express) を先に実施**。Express 5.2.1 + tsx、`server/` 独立TSパッケージ、生成型を再利用、port 4000。list/get/create/update/delete・comments・analytics を curl で end-to-end 確認 |
+| 2026-06-24 | #4       | tickets で縦切り規約確立。`api/ticketApi`(server fetch: list/get) + `actions/ticketActions`("use server": create/update/delete + revalidatePath) + `pages/TicketListPage`(async Server Component)。`app/tickets`は薄皮+`force-dynamic`。next dev + Express で `/tickets` 実データ表示を確認 |

@@ -1,20 +1,5 @@
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import Stack from "@mui/material/Stack";
+// ルーティングの薄皮。実体は features/tickets/pages に置く。
+// データを毎リクエスト取得するため動的レンダリングにする（ビルド時プリレンダ無効）。
+export const dynamic = "force-dynamic";
 
-export default function TicketsPage() {
-  return (
-    <Container maxWidth="md" sx={{ py: 6 }}>
-      <Stack spacing={2} sx={{ alignItems: "flex-start" }}>
-        <Typography variant="h4" component="h1">
-          Tickets
-        </Typography>
-        <Typography color="text.secondary">
-          Frontend reference app — Step 2 (MUI + テーマ) 完了。
-        </Typography>
-        <Button variant="contained">Primary Button</Button>
-      </Stack>
-    </Container>
-  );
-}
+export { default } from "@/features/tickets/pages/TicketListPage";

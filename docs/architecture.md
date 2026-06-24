@@ -151,7 +151,22 @@ export type Ticket = components["schemas"]["Ticket"];
 - **書き込み**：`useCreateTicket` 等の代わりに `actions/` の Server Action を使う
 - **`hooks/`** に残すのは **クライアントUI状態のみ**（フォーム送信状態の `useActionState` ラッパ、テーブルの表示状態など）。「APIをUIから隠蔽する」という意図は api/actions 層が担う
 
-## 6. テスト戦略
+## 6. ローカル起動
+
+フロント（Next.js）と API（Express）は別プロセス。2つ起動する。
+
+```bash
+# 1) APIサーバ（port 4000）
+cd server && npm install && npm run dev
+
+# 2) フロント（port 3000）— 別ターミナルで
+npm install && npm run dev      # http://localhost:3000 → /tickets
+```
+
+- Server Components はサーバ側で `API_BASE_URL`（既定 `http://localhost:4000`）へ `fetch` する
+- API契約を変えたら `npm run gen:api` で `src/types/api.ts` を再生成する
+
+## 7. テスト戦略
 
 | 対象 | ツール |
 |------|--------|
