@@ -48,7 +48,7 @@
 | **pages**（= Container） | `features/*/pages`。**実データと結線**（取得して template/organisms へ流す） | データ取得（RSC）・合成 | 表示の詳細・クライアント状態 | TicketListPage / TicketDetailPage |
 
 ポイント:
-- **atoms〜templates はすべて Presentational**（props で受けて描画。データ取得しない）。「データを取りに行ってよいのは pages（Container/RSC）だけ」——これが Presentation と Data Fetching 分離の実体。
+- **データ取得は Server Component で行う**。基本は pages（Container）だが、**深い階層で必要なら其処の Server Component が自分で取りに行ってよい（co-location）**。「pages だけが fetch」と厳格化すると props を巻き上げて破綻する（→ 8章「API はどこから呼ぶ？」）。`"use client"` な atoms/molecules/organisms は fetch できないため **props か Server Action** を使い、葉に保つ。
 - **`"use client"` 境界**：純粋表示の atoms/molecules/templates は Server Component のまま（例: StatusChip, TicketDetailTemplate）。対話やブラウザAPIが要る所だけ client（例: TicketTable, TicketForm, PlotlyChart）。
 - organisms は client になりうるが、**状態ロジックはフックに寄せて Pure に近づける**（5章 Custom Hooks）。
 - 同じレベルでも **ドメイン固有か非依存か**で置き場所が変わる（feature 内 vs `src/components/`）。配置ルールは [architecture.md](./architecture.md)。
@@ -131,3 +131,44 @@ it("ソート変更で URL を更新する（page=1 にリセット）", () => {
 | Custom Hook | `useTicketList` 等の取得フック | 取得は RSC、フックは UI状態・テスト容易性のため | 上記に伴う再解釈（本ドキュメント5章） |
 
 これらは [roadmap.md](./roadmap.md) の進捗ログにも「方針変更」として記録している。
+
+## 8. API はどこから呼ぶ？ / Props 爆発を避ける
+
+「Presentation と Data Fetching を分ける」を **古典的 Container/Presentational のまま**「fetch はページ最上位だけ」と解釈すると、深い子へデータを流すために props が巨大化する（prop drilling）。**RSC ではこの巻き上げが不要**で、これが本質的な解決策になる。
+
+### API 呼び出しの場所
+
+| 種別 | 層 | 呼べる場所 | 縛り |
+|------|----|-----------|------|
+| 読み取り | `features/*/api/`（openapi-fetch） | **任意の Server Component**（pages に限らない） | server 側で実行 |
+| 書き込み | `features/*/actions/`（Server Actions） | client（form / イベント）, server | `"use server"` |
+
+> `api`/`actions` が縛るのは「**server 側で実行**」だけ。「どこから呼ぶか」は縛らない。
+
+### Props 爆発を避ける手段
+
+1. **Co-location（巻き上げない）**
+   深い階層でデータが要るなら、その階層の Server Component が自分で取りに行く。
+   例：詳細のコメントを `TicketDetailPage` から props で流す代わりに、自分で fetch する Server Component を差し込む。
+   ```tsx
+   // CommentsSection.tsx（async Server Component）
+   export async function CommentsSection({ ticketId }: { ticketId: string }) {
+     const comments = await listComments(ticketId); // 自分で取得（巻き上げない）
+     return <CommentList comments={comments} />;
+   }
+   // template 側は <CommentsSection ticketId={ticket.id} /> を置くだけ → comments を props で貫通させない
+   ```
+
+2. **重複取得は dedup** … 同じ取得が複数箇所で走っても、fetch メモ化（Next）/ `React.cache()` で1リクエスト1回に集約される。co-location しても無駄打ちにならない。
+
+3. **whole-object を渡す** … スカラーを10個ではなく `ticket` を1個渡す（[TicketDetailTemplate](../src/features/tickets/components/templates/TicketDetailTemplate.tsx) は `ticket` / `comments` の2つだけ）。
+
+4. **composition（slot）** … Client Component に Server Component を `children` で差し込めば、client 境界を props で貫通しなくてよい。
+
+5. **横断的な client 状態は Context** … テーマ・トースト等。**サーバデータには使わない**（Context はサーバ取得の代替ではない）。
+
+### まとめ（ルールの精密化）
+
+- **client コンポーネント**（`"use client"` な atoms/molecules/organisms）→ fetch 不可。**props か Server Action**。葉に保つ。
+- **server コンポーネント**（pages / server organisms / templates）→ 必要なら **co-location で自分で取得してよい**。
+- 「pages だけが取得」ではなく **「取得は Server Component で、必要な階層に co-locate。client は props/actions」** が正。
