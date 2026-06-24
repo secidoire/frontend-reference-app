@@ -12,10 +12,11 @@
 | UIライブラリ | Material UI | 後続ステップで導入 |
 | テーブル | Material React Table | 〃 |
 | グラフ | Plotly | 〃 |
-| データ取得 | React Query (TanStack Query) | 〃 |
+| データ取得（読み取り） | React Server Components（async fetch） | Next.js ネイティブ |
+| データ更新（書き込み） | Server Actions（`"use server"`）+ `revalidatePath`/`revalidateTag` | 〃 |
 | API契約 | OpenAPI (YAML) | 単一の正（source of truth） |
 | 型生成 | openapi-typescript | 16.x→7.x |
-| APIクライアント | openapi-fetch | 型安全fetch（`services/`） |
+| APIクライアント | openapi-fetch | 型安全fetch（`services/`、**サーバ側**で利用） |
 | バックエンド | Express | 〃（`server/`に独立） |
 | モック | MSW | 〃（`src/mocks/`） |
 | テスト | Vitest + Testing Library | 〃 |
@@ -44,15 +45,16 @@ frontend-reference-app/
 │   │
 │   ├── features/                     # Feature First の中核
 │   │   ├── tickets/
-│   │   │   ├── api/                  # ticketApi.ts（services基盤を利用）
-│   │   │   ├── hooks/                # useTicketList, useTicketDetail, useCreateTicket...
+│   │   │   ├── api/                  # ticketApi.ts（サーバ側fetch・読み取り。openapi-fetch利用）
+│   │   │   ├── actions/              # Server Actions（作成/更新/削除 + revalidate）"use server"
+│   │   │   ├── hooks/                # クライアントUI状態のみ（useActionState ラッパ等。データ取得はしない）
 │   │   │   ├── types/                # Ticket型
 │   │   │   ├── components/
 │   │   │   │   ├── atoms/            # StatusChip, PriorityChip（ドメイン固有）
 │   │   │   │   ├── molecules/        # TicketSummaryCard
 │   │   │   │   ├── organisms/        # TicketTable, TicketForm
 │   │   │   │   └── templates/        # TicketDetailTemplate, TicketEditTemplate
-│   │   │   └── pages/                # TicketListPage...（Container）
+│   │   │   └── pages/                # TicketListPage...（async Server Component = Container）
 │   │   ├── comments/                 # CommentItem, CommentList
 │   │   ├── analytics/                # StatusChart, AssigneeChart...
 │   │   └── users/                    # UserBadge
@@ -64,7 +66,7 @@ frontend-reference-app/
 │   │   ├── templates/                # PageLayout（ページ骨格）
 │   │   └── layouts/                  # Sidebar, Header
 │   │
-│   ├── services/                     # API通信基盤（openapi-fetch の apiClient, queryClient）
+│   ├── services/                     # API通信基盤（openapi-fetch の apiClient。サーバ側fetch）
 │   ├── lib/                          # 純粋関数ユーティリティ（formatDate, groupBy...）
 │   ├── types/                        # 全体共有型 + api.ts（openapi-typescript 生成・編集禁止）
 │   └── mocks/                        # MSW（ブラウザ / テスト共用）
@@ -84,8 +86,10 @@ frontend-reference-app/
 | **App Router の役割** | `app/*/page.tsx` はルーティングの薄皮。実体は `features/*/pages/` に置き、それをimportして返すだけ | ルーティングとドメインロジックの分離。Atomic Designの "Page" と Next.js routing の名前衝突を回避 |
 | **コンポーネント境界** | **ドメイン固有**（StatusChip, TicketTable等）→ `features/*/components/`。**ドメイン非依存**（Avatar, Button, AppShell）→ `src/components/` | Feature First を徹底しつつ、横断再利用も両立（ハイブリッド配置） |
 | **ダイアログ** | 汎用の「枠」（ConfirmDialog, FormDialog）→ `src/components/`。ドメインの「中身」（文言・onConfirmのロジック）→ feature内で枠を利用 | Container/Presentational と 汎用/ドメイン の二軸を示す |
-| **services / lib** | `services/` = API通信基盤（fetchラッパ・queryClient）。`lib/` = 副作用のない純粋関数 | データ取得と純粋ロジックの分離 |
-| **Container / Presentational** | `pages/` = Container（hooks呼出・状態管理）。`components/` = Presentational（可能な限りpure） | 設計原則「PresentationとData Fetchingの分離」 |
+| **services / lib** | `services/` = API通信基盤（openapi-fetchクライアント）。`lib/` = 副作用のない純粋関数 | データ取得と純粋ロジックの分離 |
+| **データ取得 = Server Components** | 読み取りは `pages/` の async Server Component で `features/*/api` を await。クライアントへ `fetch` を持ち込まない | App Router本来の流儀。クライアントJS削減・型安全 |
+| **データ更新 = Server Actions** | 作成/更新/削除は `features/*/actions/` の `"use server"` 関数。完了後 `revalidatePath`/`revalidateTag` で再取得。フォームから `action`/`useActionState` で呼ぶ | mutation後の再検証を宣言的に。クライアント状態管理を不要に |
+| **Container / Presentational** | `pages/` = Container（Server Componentでfetch・合成）。`components/` = Presentational（可能な限りpure。対話が要る所だけ `"use client"`） | 「PresentationとData Fetchingの分離」をRSC境界で表現 |
 | **型とAPIの同期** | `docs/openapi.yaml` を正として `src/types/api.ts` を**生成**。featureのドメイン型はそこから導出（`components["schemas"]["Ticket"]`等）。手書きしない | 型をAPIと機械的に同期。仕様変更が型エラーで検知できる |
 | **`features/shared/` は不採用** | 横断要素は `src/components/` + `src/lib/` に吸収 | 共有先を一本化 |
 | **コンポーネント移動の方針** | 最初はfeature内に置き、複数featureで必要になった「タイミングで」`src/components/` へ昇格 | 早すぎる共通化を避ける |
@@ -107,9 +111,10 @@ frontend-reference-app/
 docs/openapi.yaml  ── 単一の正
    ├─→ フロント : openapi-typescript で src/types/api.ts を生成
    │              └─ openapi-fetch の apiClient が paths 型で型安全化
-   │                 └─ features/*/api が型安全に呼び出し → hooks が隠蔽
+   │                 ├─ features/*/api（Server Componentから読み取り）
+   │                 └─ features/*/actions（Server Actionsから更新）
    ├─→ server/  : 同じ契約を Express で実装（突き合わせ可能）
-   └─→ MSW      : 生成型で handlers を型付け
+   └─→ MSW      : 生成型で handlers を型付け（テストでサーバ側fetchを intercept）
 ```
 
 ### 生成ルール
@@ -122,9 +127,29 @@ import type { components } from "@/types/api";
 export type Ticket = components["schemas"]["Ticket"];
 ```
 
-### 責務の流れ（要件のCustom Hook方針を維持）
-- **生成**：型 + 型安全クライアント（openapi-fetch）まで
-- **手書き**：`features/*/hooks/` の React Query フック（`useTicketList` 等）はあえて手書きし、UIからAPIを隠蔽する設計例を示す
+### データフロー（Server Components + Server Actions）
+
+```text
+[読み取り]
+  app/tickets/page.tsx (薄皮)
+    └─ features/tickets/pages/TicketListPage.tsx   ← async Server Component
+         └─ await features/tickets/api/ticketApi.list()   ← openapi-fetch（サーバ実行）
+              └─ Express (/api/tickets)
+         → 取得データを Presentational(components/) に props で渡す
+
+[書き込み]
+  features/tickets/components/.../TicketForm ("use client")
+    └─ <form action={createTicketAction}>  /  useActionState(createTicketAction)
+         └─ features/tickets/actions/createTicket.ts ("use server")
+              ├─ await ticketApi.create(...)        ← openapi-fetch（サーバ実行）
+              └─ revalidatePath("/tickets")          ← 一覧を再取得
+```
+
+### 要件の「Custom Hook方針」の再解釈
+要件11章は当初 React Query 前提だったが、本プロジェクトでは **Server Components + Server Actions** を採用する。
+- **読み取り**：`useTicketList` 等のフェッチ用フックは作らない。Server Componentで直接 `api/` を await する
+- **書き込み**：`useCreateTicket` 等の代わりに `actions/` の Server Action を使う
+- **`hooks/`** に残すのは **クライアントUI状態のみ**（フォーム送信状態の `useActionState` ラッパ、テーブルの表示状態など）。「APIをUIから隠蔽する」という意図は api/actions 層が担う
 
 ## 6. テスト戦略
 
