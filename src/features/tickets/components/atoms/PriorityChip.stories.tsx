@@ -13,24 +13,33 @@ type Story = StoryObj<typeof meta>;
 
 export const High: Story = {
   args: { priority: "HIGH" },
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText("高")).toBeInTheDocument();
+    await step("Given: priority=HIGH の PriorityChip を表示", async () => {
+      await expect(canvasElement).toBeInTheDocument();
+    });
+    await step("Then: ラベル「高」が表示される", async () => {
+      await expect(canvas.getByText("高")).toBeInTheDocument();
+    });
   },
 };
 
 export const Medium: Story = {
   args: { priority: "MEDIUM" },
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText("中")).toBeInTheDocument();
+    await step("Then: ラベル「中」が表示される", async () => {
+      await expect(canvas.getByText("中")).toBeInTheDocument();
+    });
   },
 };
 
 export const Low: Story = {
   args: { priority: "LOW" },
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText("低")).toBeInTheDocument();
+    await step("Then: ラベル「低」が表示される", async () => {
+      await expect(canvas.getByText("低")).toBeInTheDocument();
+    });
   },
 };

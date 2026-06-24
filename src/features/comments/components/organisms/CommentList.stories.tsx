@@ -17,17 +17,27 @@ export const WithComments: Story = {
       { id: "c2", ticketId: "t1", authorId: "u1", content: "ありがとうございます", createdAt: "2026-01-11T10:30:00.000Z" },
     ],
   },
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText("再現しました")).toBeInTheDocument();
-    await expect(canvas.getByText("ありがとうございます")).toBeInTheDocument();
+    await step("Given: コメント2件を渡す", async () => {
+      await expect(canvasElement).toBeInTheDocument();
+    });
+    await step("Then: 全コメントが表示される", async () => {
+      await expect(canvas.getByText("再現しました")).toBeInTheDocument();
+      await expect(canvas.getByText("ありがとうございます")).toBeInTheDocument();
+    });
   },
 };
 
 export const Empty: Story = {
   args: { comments: [] },
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText("コメントはありません。")).toBeInTheDocument();
+    await step("Given: 空配列を渡す", async () => {
+      await expect(canvasElement).toBeInTheDocument();
+    });
+    await step("Then: 「コメントはありません。」が表示される", async () => {
+      await expect(canvas.getByText("コメントはありません。")).toBeInTheDocument();
+    });
   },
 };

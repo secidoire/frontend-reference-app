@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { expect, within } from "storybook/test";
+import { expect, userEvent, within } from "storybook/test";
 import { TicketTable } from "./TicketTable";
 import type { Ticket } from "../../types";
 
@@ -20,12 +20,37 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement);
-    // タイトルが詳細リンクとして描画される
-    await expect(canvas.getByRole("link", { name: "ログイン不具合" })).toBeInTheDocument();
-    // StatusChip / PriorityChip のラベル
-    await expect(canvas.getByText("進行中")).toBeInTheDocument();
-    await expect(canvas.getByText("高")).toBeInTheDocument();
+    await step("Given: 2件のチケットでテーブルを表示", async () => {
+      await expect(canvasElement).toBeInTheDocument();
+    });
+    await step("Then: タイトルが詳細リンクとして描画される", async () => {
+      await expect(canvas.getByRole("link", { name: "ログイン不具合" })).toBeInTheDocument();
+    });
+    await step("Then: StatusChip / PriorityChip が描画される", async () => {
+      await expect(canvas.getByText("進行中")).toBeInTheDocument();
+      await expect(canvas.getByText("高")).toBeInTheDocument();
+    });
+  },
+};
+
+/** ソート/ページング操作で URL同期ハンドラ（manual mode）が動くことを確認。 */
+export const Interactions: Story = {
+  args: { rowCount: 50 }, // 次ページを有効化
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step("Given: 一覧テーブルが表示される", async () => {
+      await expect(canvas.getByRole("link", { name: "ログイン不具合" })).toBeInTheDocument();
+    });
+    await step("When: ステータス列ヘッダでソートする", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: /ステータス/ }));
+    });
+    await step("When: 次ページへ移動する", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: /next page/i }));
+    });
+    await step("Then: テーブルは表示を維持する", async () => {
+      await expect(canvas.getByRole("link", { name: "ログイン不具合" })).toBeInTheDocument();
+    });
   },
 };

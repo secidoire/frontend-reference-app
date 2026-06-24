@@ -15,6 +15,10 @@ describe("parseTicketQuery", () => {
   it("配列パラメータは先頭を採用する", () => {
     expect(parseTicketQuery({ status: ["DONE", "TODO"] })).toEqual({ status: "DONE" });
   });
+
+  it("search を取り込む", () => {
+    expect(parseTicketQuery({ search: "ログイン" })).toEqual({ search: "ログイン" });
+  });
 });
 
 describe("serializeTicketQuery", () => {
@@ -30,5 +34,22 @@ describe("serializeTicketQuery", () => {
     const qs = serializeTicketQuery({ status: "TODO", page: 3 });
     expect(qs).toContain("status=TODO");
     expect(qs).toContain("page=3");
+  });
+
+  it("全フィールドを直列化する（priority/search/order/pageSize）", () => {
+    const qs = serializeTicketQuery({
+      status: "TODO",
+      priority: "HIGH",
+      search: "abc",
+      sort: "priority",
+      order: "asc",
+      page: 2,
+      pageSize: 50,
+    });
+    expect(qs).toContain("priority=HIGH");
+    expect(qs).toContain("search=abc");
+    expect(qs).toContain("order=asc");
+    expect(qs).toContain("pageSize=50");
+    expect(qs).toContain("page=2");
   });
 });

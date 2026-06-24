@@ -20,10 +20,15 @@ export const Default: Story = {
       createdAt: "2026-01-11T09:00:00.000Z",
     },
   },
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText("再現しました。対応します。")).toBeInTheDocument();
-    await expect(canvas.getByText("u2")).toBeInTheDocument();
-    await expect(canvas.getByText("2026/01/11")).toBeInTheDocument();
+    await step("Given: コメント1件を表示", async () => {
+      await expect(canvasElement).toBeInTheDocument();
+    });
+    await step("Then: 本文・著者・日付が表示される", async () => {
+      await expect(canvas.getByText("再現しました。対応します。")).toBeInTheDocument();
+      await expect(canvas.getByText("u2")).toBeInTheDocument();
+      await expect(canvas.getByText("2026/01/11")).toBeInTheDocument();
+    });
   },
 };

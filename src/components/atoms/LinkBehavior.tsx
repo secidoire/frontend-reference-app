@@ -10,7 +10,7 @@ import NextLink, { type LinkProps as NextLinkProps } from "next/link";
  */
 export const LinkBehavior = React.forwardRef<
   HTMLAnchorElement,
-  Omit<NextLinkProps, "href"> & { href?: NextLinkProps["href"] }
+  Omit<NextLinkProps, "href"> & { href?: NextLinkProps["href"]; children?: React.ReactNode }
 >(function LinkBehavior(props, ref) {
   const { href, ...other } = props;
   return <NextLink ref={ref} href={href ?? ""} {...other} />;

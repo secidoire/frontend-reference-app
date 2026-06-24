@@ -10,6 +10,24 @@ export default defineConfig(async () => {
 
   return {
     test: {
+      // 両プロジェクト合算のカバレッジ。下限 90%。
+      coverage: {
+        provider: "v8" as const,
+        include: ["src/**"],
+        exclude: [
+          "src/**/*.stories.*",
+          "src/**/*.test.*",
+          "src/test/**",
+          "src/mocks/**",
+          "src/types/**", // 生成 api.ts
+          "src/features/*/types/**", // 型のみ
+          "src/app/**", // ルーティング薄皮 + RSC ページ
+          "src/features/*/pages/**", // RSC コンテナ（e2e/Playwrightで担保）
+          "src/theme/**",
+        ],
+        reporter: ["text-summary", "text"],
+        thresholds: { statements: 90, branches: 90, functions: 90, lines: 90 },
+      },
       projects: [
         {
           // ── 単体テスト（jsdom + MSW node）

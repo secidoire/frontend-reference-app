@@ -35,6 +35,7 @@ npm install && npm run dev   # http://localhost:3000 → /tickets
 | `npm run test` | Vitest（watch） |
 | `npm run test:run` | Vitest（unit + storybook、1回） |
 | `npm run test:storybook` | Storybook Interaction Test（実ブラウザ） |
+| `npm run test:coverage` | カバレッジ計測（下限90%） |
 | `npm run storybook` | Storybook 起動（:6006） |
 
 ## 画面
