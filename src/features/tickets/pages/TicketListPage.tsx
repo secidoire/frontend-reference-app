@@ -25,9 +25,14 @@ export default async function TicketListPage({ searchParams }: TicketListPagePro
         <Typography variant="h4" component="h1">
           Tickets
         </Typography>
-        <Button href="/tickets/new" variant="contained">
-          新規作成
-        </Button>
+        <Stack direction="row" spacing={1}>
+          <Button href="/analytics" variant="outlined">
+            分析
+          </Button>
+          <Button href="/tickets/new" variant="contained">
+            新規作成
+          </Button>
+        </Stack>
       </Stack>
       <TicketTable rows={data} rowCount={total} query={query} />
     </Container>
