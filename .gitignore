@@ -31,5 +31,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 
+# storybook
+/storybook-static
+*storybook.log
+
 # Ignore vscode AI rules
 .github/instructions/codacy.instructions.md

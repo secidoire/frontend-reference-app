@@ -34,7 +34,7 @@
 | 5   | server/（Express）        | インメモリデータ + REST API（OpenAPI契約を実装）                                                                               | ✅    |
 | 6   | MSW                       | 生成型で handlers / fixtures、browser.ts / server.ts                                                                           | ✅    |
 | 7   | Vitest                    | 設定、Testing Library、MSW結合                                                                                                 | ✅    |
-| 8   | Storybook                 | 設定、Interaction Test 実行環境                                                                                                | ⬜    |
+| 8   | Storybook                 | 設定、Interaction Test 実行環境                                                                                                | ✅    |
 
 ### Phase B — Feature実装（縦切り）
 
@@ -71,3 +71,4 @@
 | 2026-06-24 | #4       | tickets で縦切り規約確立。`api/ticketApi`(server fetch: list/get) + `actions/ticketActions`("use server": create/update/delete + revalidatePath) + `pages/TicketListPage`(async Server Component)。`app/tickets`は薄皮+`force-dynamic`。next dev + Express で `/tickets` 実データ表示を確認 |
 | 2026-06-24 | #6       | MSW 2.14.6。契約準拠のモックバックエンド（handlers: tickets/comments/analytics）+ 可変DB(`resetDb`) + 独立fixtures。`server.ts`(node/Vitest) / `browser.ts`(Storybook)。tsx で filter/sort/paging・CRUD・analytics を実行時検証 |
 | 2026-06-24 | #7       | Vitest 4.1.9 + Testing Library + jsdom。`vitest.config`(native tsconfigPaths) + setup(MSW server起動・resetDb)。`lib/date`(純粋関数) と `ticketApi`(MSW結合) のテスト計7件green。**ハマり**: openapi-fetchがcreateClient時にfetchをキャプチャ→MSW未intercept。`fetch:(req)=>fetch(req)`で呼出時解決に修正 |
+| 2026-06-24 | #8       | Storybook 10.4.6（nextjs-vite）+ addon-vitest（Playwright/Chromium 実ブラウザ）+ msw-storybook-addon。vitest projects を unit/storybook の2本に。StatusChip atom を先取りし story+play関数3件を実ブラウザでgreen（全10件green）。**ハマり**: top-level await不可→async config、provider はファクトリ(`@vitest/browser-playwright`)、SB10.3+はsetProjectAnnotations不要、dep最適化flaky→optimizeDeps.include |

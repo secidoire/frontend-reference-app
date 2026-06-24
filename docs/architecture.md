@@ -170,5 +170,11 @@ npm install && npm run dev      # http://localhost:3000 → /tickets
 
 | 対象 | ツール |
 |------|--------|
-| Custom Hooks / Utility | Vitest + Testing Library（MSWでAPIモック） |
-| atoms / molecules / organisms | Storybook Interaction Test（全Storyに付与） |
+| Custom Hooks / Utility / API層 | Vitest + Testing Library（jsdom、MSW node でAPIモック） |
+| atoms / molecules / organisms | Storybook Interaction Test（play関数を全Storyに付与） |
+
+実行は Vitest の2プロジェクト構成（`vitest.config.ts`）。
+
+- `unit` … jsdom + MSW node。`npm run test`（`*.test.ts(x)`）
+- `storybook` … addon-vitest が story を **実ブラウザ（Playwright/Chromium）** で実行。`npm run test:storybook`
+- `npm run test:run` で両方。Storybook UI からも Interactions パネルで確認可能（`npm run storybook`）
