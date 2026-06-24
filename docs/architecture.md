@@ -4,26 +4,26 @@
 
 ## 1. 技術スタック（確定バージョン）
 
-| 分類 | 採用 | バージョン方針 |
-|------|------|--------------|
-| Framework | Next.js (App Router) | 16.x |
-| 言語 | TypeScript | 5.9.x（周辺ツールのpeer `^5` に準拠。TS6は openapi-typescript 等が未対応のため見送り） |
-| UI | React | 19.x |
-| UIライブラリ | Material UI | 後続ステップで導入 |
-| テーブル | Material React Table | 〃 |
-| グラフ | Plotly | 〃 |
+| 分類 | 採用 | バージョン |
+|------|------|-----------|
+| Framework | Next.js (App Router) | 16.2 |
+| 言語 | TypeScript | 5.9（周辺ツールのpeer `^5` に準拠。TS6は openapi-typescript 等が未対応のため見送り） |
+| UI | React | 19.2 |
+| UIライブラリ | Material UI | 9.1 |
+| テーブル | Material React Table | 3.2（+ @mui/x-date-pickers 9.6） |
+| グラフ | Plotly | plotly.js 3.6 / react-plotly.js 4.0 |
 | データ取得（読み取り） | React Server Components（async fetch） | Next.js ネイティブ |
-| データ更新（書き込み） | Server Actions（`"use server"`）+ `revalidatePath`/`revalidateTag` | 〃 |
-| API契約 | OpenAPI (YAML) | 単一の正（source of truth） |
-| 型生成 | openapi-typescript | 16.x→7.x |
-| APIクライアント | openapi-fetch | 型安全fetch（`services/`、**サーバ側**で利用） |
-| バックエンド | Express | 〃（`server/`に独立） |
-| モック | MSW | 〃（`src/mocks/`） |
-| テスト | Vitest + Testing Library | 〃 |
-| カタログ | Storybook + Interaction Test | 〃 |
+| データ更新（書き込み） | Server Actions（`"use server"`）+ `revalidatePath` | 〃 |
+| API契約 | OpenAPI (YAML) | 3.1（単一の正） |
+| 型生成 | openapi-typescript | 7.13 |
+| APIクライアント | openapi-fetch | 0.17（`services/`、**サーバ側**で利用） |
+| バックエンド | Express | 5.2（`server/` に独立、tsx 実行） |
+| モック | MSW | 2.14（`src/mocks/`） |
+| テスト | Vitest + Testing Library | Vitest 4.1（unit + browser の2プロジェクト） |
+| カタログ | Storybook + Interaction Test | 10.4（addon-vitest + Playwright/Chromium） |
 | パッケージ管理 | npm | — |
 
-> バージョンは導入時点の最新を採用する。古いものを書かない（要 `npm view <pkg> version` で確認）。
+> バージョンは導入時点（2026-06）の最新。新規導入時も `npm view <pkg> version` で最新を確認する。
 
 ## 2. ディレクトリ構成
 
