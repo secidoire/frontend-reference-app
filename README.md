@@ -10,7 +10,7 @@
 - Vitest（unit）+ Storybook Interaction Test（実ブラウザ）
 - MSW によるモック、Express の独立バックエンド
 
-詳細は [`docs/`](./docs/) を参照（[要件定義書](./要件定義書.md) / [architecture](./docs/architecture.md) / [roadmap](./docs/roadmap.md)）。
+詳細は [`docs/`](./docs/) を参照（[要件定義書](./要件定義書.md) / [architecture](./docs/architecture.md) / **[design-guide（責務分離の解説）](./docs/design-guide.md)** / [roadmap](./docs/roadmap.md)）。
 
 ## セットアップ / 起動
 

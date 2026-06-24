@@ -83,3 +83,4 @@
 | 2026-06-24 | #17      | Unit Test 拡充。`commentApi`/`analyticsApi`(MSW結合) + `ticketActions`(core 3 + form 2、next/cache・next/navigation をモック)。unit 21 / 全34件 green |
 | 2026-06-24 | #18      | レビュー/整備。ルート `README.md` 追加、architecture の技術スタックを実バージョンで確定。最終検証：typecheck（front/server）・build（全7ルート）・全34テスト green。**全18ステップ完了** |
 | 2026-06-24 | 追加     | カバレッジ常設（`@vitest/coverage-v8`、`test:coverage`、**下限90%**）。Interaction Test を Gherkin（Given/When/Then の `step`）で統一＋チャート/PlotlyChart/DetailTemplate/LinkBehavior の story 追加。API/Actions のエラー分岐・form分岐・TicketTable 操作の unit/IT 追加。**56テスト**、Stmt96.8/Branch90.5/Func92.9/Line97.7% で全指標90%超 |
+| 2026-06-24 | 追加     | リファレンス性強化。**Custom Hooks をテスト容易性のために切り出し**（`useTicketTableState`=URL同期, `useTicketForm`=フォーム状態）→ TicketTable/TicketForm を薄く。フックは next/navigation をモックしブラウザ無しでVitest単体テスト。`docs/design-guide.md`（責務分離の解説）を追加。62テスト、Stmt100/Branch94.7/Func98.5/Line100% |

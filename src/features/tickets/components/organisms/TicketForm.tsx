@@ -1,12 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
+import { useTicketForm } from "../../hooks/useTicketForm";
 import type { FormState } from "../../actions/formState";
 import type { Ticket } from "../../types";
 
@@ -38,13 +38,13 @@ type TicketFormProps = {
  * 作成・編集の双方で再利用する（defaultValues の有無で切り替え）。
  */
 export function TicketForm({ action, defaultValues, submitLabel }: TicketFormProps) {
-  const [state, formAction, isPending] = useActionState<FormState, FormData>(action, {});
+  const { error, formAction, isPending } = useTicketForm(action);
   const d = defaultValues ?? {};
 
   return (
     <Box component="form" action={formAction}>
       <Stack spacing={2} sx={{ maxWidth: 560 }}>
-        {state.error && <Alert severity="error">{state.error}</Alert>}
+        {error && <Alert severity="error">{error}</Alert>}
 
         <TextField name="title" label="タイトル" required defaultValue={d.title ?? ""} />
         <TextField
