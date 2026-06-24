@@ -24,7 +24,7 @@ export function TicketCreateDialog() {
         <TicketForm
           onResult={(result) => {
             // 「閉じる」判断は親が持つ＝フォームは設置文脈を知らない（文脈非依存）。
-            // 結果を“受け取って”分岐するから再利用が効く。Why は docs/design-guide.md 9章。
+            // 結果を“受け取って”分岐するから再利用が効く。Why は docs/design-guide.md 6章。
             if (result.ok) setOpen(false);
           }}
         />
