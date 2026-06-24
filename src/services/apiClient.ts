@@ -11,4 +11,9 @@ import type { paths } from "@/types/api";
  */
 const baseUrl = process.env.API_BASE_URL ?? "http://localhost:4000";
 
-export const apiClient = createClient<paths>({ baseUrl });
+export const apiClient = createClient<paths>({
+  baseUrl,
+  // createClient 時に globalThis.fetch をキャプチャさせず、呼び出し毎に解決する。
+  // これで MSW（テスト）や Next の計装 fetch を確実に経由する。
+  fetch: (request) => fetch(request),
+});

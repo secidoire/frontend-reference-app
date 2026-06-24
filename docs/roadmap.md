@@ -33,7 +33,7 @@
 | 4   | データ層規約（RSC/Actions） | Server Components で読み取り・Server Actions で更新する規約を確立（`api/`=server fetch, `actions/`=mutation+revalidate）。React Query は不採用 | ✅    |
 | 5   | server/（Express）        | インメモリデータ + REST API（OpenAPI契約を実装）                                                                               | ✅    |
 | 6   | MSW                       | 生成型で handlers / fixtures、browser.ts / server.ts                                                                           | ✅    |
-| 7   | Vitest                    | 設定、Testing Library、MSW結合                                                                                                 | ⬜    |
+| 7   | Vitest                    | 設定、Testing Library、MSW結合                                                                                                 | ✅    |
 | 8   | Storybook                 | 設定、Interaction Test 実行環境                                                                                                | ⬜    |
 
 ### Phase B — Feature実装（縦切り）
@@ -70,3 +70,4 @@
 | 2026-06-24 | 順序変更 | #4(データ層規約) は叩く先が必要なため **#5(Express) を先に実施**。Express 5.2.1 + tsx、`server/` 独立TSパッケージ、生成型を再利用、port 4000。list/get/create/update/delete・comments・analytics を curl で end-to-end 確認 |
 | 2026-06-24 | #4       | tickets で縦切り規約確立。`api/ticketApi`(server fetch: list/get) + `actions/ticketActions`("use server": create/update/delete + revalidatePath) + `pages/TicketListPage`(async Server Component)。`app/tickets`は薄皮+`force-dynamic`。next dev + Express で `/tickets` 実データ表示を確認 |
 | 2026-06-24 | #6       | MSW 2.14.6。契約準拠のモックバックエンド（handlers: tickets/comments/analytics）+ 可変DB(`resetDb`) + 独立fixtures。`server.ts`(node/Vitest) / `browser.ts`(Storybook)。tsx で filter/sort/paging・CRUD・analytics を実行時検証 |
+| 2026-06-24 | #7       | Vitest 4.1.9 + Testing Library + jsdom。`vitest.config`(native tsconfigPaths) + setup(MSW server起動・resetDb)。`lib/date`(純粋関数) と `ticketApi`(MSW結合) のテスト計7件green。**ハマり**: openapi-fetchがcreateClient時にfetchをキャプチャ→MSW未intercept。`fetch:(req)=>fetch(req)`で呼出時解決に修正 |
