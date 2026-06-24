@@ -88,6 +88,26 @@ export async function createTicketFormAction(
   redirect(`/tickets/${created.id}`); // 成功時のみ（try外。redirectはNEXT_REDIRECTをthrow）
 }
 
+/**
+ * ダイアログ等の「その場で作成」用 Server Action。
+ * 画面遷移せず、一覧を revalidate して成功シグナル（ok）を返す。
+ * 呼び出し側（ダイアログ）は ok を見て自分で閉じる。
+ */
+export async function createTicketInlineAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const parsed = parseTicketForm(formData);
+  if ("error" in parsed) return { error: parsed.error };
+
+  try {
+    await createTicketAction(parsed.input); // /tickets を revalidate
+  } catch {
+    return { error: "作成に失敗しました" };
+  }
+  return { ok: true };
+}
+
 /** 編集フォーム用 Server Action。id を bind して使う。 */
 export async function updateTicketFormAction(
   id: string,

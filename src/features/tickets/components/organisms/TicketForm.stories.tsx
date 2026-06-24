@@ -50,6 +50,21 @@ export const Edit: Story = {
   },
 };
 
+export const Success: Story = {
+  args: { action: fn(async () => ({ ok: true })), onSuccess: fn() },
+  play: async ({ args, canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step("When: 入力して送信する（action が ok を返す）", async () => {
+      await userEvent.type(canvas.getByLabelText(/タイトル/), "x");
+      await userEvent.type(canvas.getByLabelText(/担当/), "u1");
+      await userEvent.click(canvas.getByRole("button", { name: "作成" }));
+    });
+    await step("Then: onSuccess が呼ばれる（呼び出し側がダイアログを閉じられる）", async () => {
+      await expect(args.onSuccess).toHaveBeenCalled();
+    });
+  },
+};
+
 export const ShowsError: Story = {
   args: { action: fn(async () => ({ error: "作成に失敗しました" })) },
   play: async ({ canvasElement, step }) => {

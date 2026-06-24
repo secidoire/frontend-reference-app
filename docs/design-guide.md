@@ -172,3 +172,43 @@ it("ソート変更で URL を更新する（page=1 にリセット）", () => {
 - **client コンポーネント**（`"use client"` な atoms/molecules/organisms）→ fetch 不可。**props か Server Action**。葉に保つ。
 - **server コンポーネント**（pages / server organisms / templates）→ 必要なら **co-location で自分で取得してよい**。
 - 「pages だけが取得」ではなく **「取得は Server Component で、必要な階層に co-locate。client は props/actions」** が正。
+
+## 9. IF設計のケーススタディ：作成ダイアログ
+
+モーダル内フォーム（新規作成ダイアログ）は **IF（インターフェース）を崩しやすい**題材。よくある失敗と本実装の設計を対比する。
+
+### よくある失敗
+- ダイアログが `open` 状態を内部に抱える → 外から制御・テストできない
+- ダイアログが**中身（文言・送信処理）をハードコード** → 再利用できない
+- props 肥大（title / fields / onSubmit / onCancel / loading …）
+- 成功時の「閉じる＋一覧更新」を繋ぐために、**フォームが dialog や router を直接知る**
+
+### 本実装の設計（3層 + composition）
+
+```text
+TicketCreateDialog (ドメイン/client)     ← open 状態を保持。枠と中身を組むだけ
+  ├─ FormDialog (汎用枠/molecule)         ← { open, title, onClose, children }。フォームを知らない
+  │    └─ {children}                       ← composition で中身を差し込む（props 貫通なし）
+  └─ TicketForm (中身/organism)           ← { action, onSuccess? } を受けるだけ
+        └─ useTicketForm(action, onSuccess) ← ok シグナルで onSuccess を発火
+```
+
+崩さないための要点:
+1. **FormDialog は枠に徹する** … `{ open, title, onClose, children }` だけ。中身は children（composition）でフォームを知らない・props 貫通しない（8章と同じ考え）。
+2. **TicketForm は設置文脈を知らない** … `{ action, onSuccess? }` を受けるだけ。
+   - ページ（`/tickets/new`）では **redirect するアクション**を渡す → 詳細へ遷移
+   - ダイアログでは **ok を返すアクション + `onSuccess={閉じる}`** を渡す → 閉じて一覧更新（revalidate）
+   - **同じフォームが両文脈で動く**。フォームに `if (dialog) …` は無い。
+3. **成功の伝え方は ok シグナル** … アクションが `{ ok: true }` を返し、`useTicketForm` が `onSuccess` を発火。フォームは router も dialog も import しない。
+4. **open 状態は TicketCreateDialog が保持** … 呼び出し側（一覧）には漏らさない。
+
+### IF の比較
+
+| 観点 | 崩れた IF | 本実装 |
+|------|----------|--------|
+| 開閉状態 | ダイアログ内部 / 呼び出し側に散在 | ドメイン（TicketCreateDialog）が一元保持 |
+| 中身の差し込み | props で title / fields / onSubmit | **children（composition）** |
+| 成功時の後続 | フォームが dialog / router を直接操作 | **ok シグナル → onSuccess**（フォームは文脈を知らない） |
+| 再利用 | ダイアログ専用 | FormDialog は任意のフォーム / TicketForm はページ・ダイアログ両用 |
+
+実装: [FormDialog](../src/components/molecules/FormDialog.tsx) / [TicketCreateDialog](../src/features/tickets/components/organisms/TicketCreateDialog.tsx) / [TicketForm](../src/features/tickets/components/organisms/TicketForm.tsx) / [useTicketForm](../src/features/tickets/hooks/useTicketForm.ts)

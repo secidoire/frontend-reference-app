@@ -5,6 +5,7 @@ import Button from "@mui/material/Button";
 import { listTickets } from "../api/ticketApi";
 import { parseTicketQuery, type RawSearchParams } from "../lib/ticketQuery";
 import { TicketTable } from "../components/organisms/TicketTable";
+import { TicketCreateDialog } from "../components/organisms/TicketCreateDialog";
 
 type TicketListPageProps = {
   searchParams: Promise<RawSearchParams>;
@@ -29,9 +30,7 @@ export default async function TicketListPage({ searchParams }: TicketListPagePro
           <Button href="/analytics" variant="outlined">
             分析
           </Button>
-          <Button href="/tickets/new" variant="contained">
-            新規作成
-          </Button>
+          <TicketCreateDialog />
         </Stack>
       </Stack>
       <TicketTable rows={data} rowCount={total} query={query} />

@@ -30,6 +30,8 @@ type TicketFormProps = {
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
   defaultValues?: TicketFormDefaults;
   submitLabel: string;
+  /** 成功時に呼ばれる（ダイアログを閉じる等）。フォーム自身は設置文脈を知らない。 */
+  onSuccess?: () => void;
 };
 
 /**
@@ -37,8 +39,8 @@ type TicketFormProps = {
  * Server Action を `action` prop で受け取り、useActionState で送信状態とエラーを扱う。
  * 作成・編集の双方で再利用する（defaultValues の有無で切り替え）。
  */
-export function TicketForm({ action, defaultValues, submitLabel }: TicketFormProps) {
-  const { error, formAction, isPending } = useTicketForm(action);
+export function TicketForm({ action, defaultValues, submitLabel, onSuccess }: TicketFormProps) {
+  const { error, formAction, isPending } = useTicketForm(action, onSuccess);
   const d = defaultValues ?? {};
 
   return (
