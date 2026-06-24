@@ -52,7 +52,7 @@
 
 | #   | ステップ         | 内容                                          | 状態 |
 | --- | ---------------- | --------------------------------------------- | ---- |
-| 16  | Interaction Test | atoms / molecules / organisms の全Storyに付与 | ⬜    |
+| 16  | Interaction Test | atoms / molecules / organisms の全Storyに付与 | ✅    |
 | 17  | Unit Test        | Custom Hooks / Utility を Vitest（MSWモック） | ⬜    |
 | 18  | レビュー / 整備  | ドキュメント反映、設計意図のコメント整備      | ⬜    |
 
@@ -79,3 +79,4 @@
 | 2026-06-24 | #13      | チケット作成 `/tickets/new`。`TicketForm`(organism,"use client", useActionState)を create/edit 共用設計で実装。`createTicketFormAction`(form-bound Server Action: parse→POST→revalidate→redirect)。**ハマり**: Server Component から MUI Link/Button に `component={NextLink}`(関数)を渡すと静的プリレンダで失敗→MUI公式の `LinkBehavior` をテーマ既定に設定して解消。一覧に新規作成ボタン |
 | 2026-06-24 | #14      | チケット編集 `/tickets/[id]/edit`。`TicketEditPage`(getTicket→notFound、`updateTicketFormAction.bind(null,id)`)で TicketForm を defaultValues 付き再利用。詳細に編集ボタン。t1編集の初期値プリフィル・不明id 404 を確認 |
 | 2026-06-24 | #15      | 分析 `/analytics`。plotly.js 3.6.0 + react-plotly.js 4.0.0（React19 peer対応）。`PlotlyChart`(molecule,"use client", next/dynamic ssr:false) + StatusChart/AssigneeChart/MonthlyChart(organism, トレースはサーバ生成)。`analyticsApi.getAnalytics`。一覧に分析リンク。Playwrightで実ブラウザ描画（3プロット）確認。**Phase B 完了** |
+| 2026-06-24 | #16      | Interaction Test 拡充。CommentItem/CommentList/TicketForm(3)/TicketTable に story+play 追加。storybook 13件 / 全26件 green。**ハマり**: TicketTable は `nextjs.appDirectory:true` で App Router コンテキスト有効化、TicketForm エラー表示は required を満たして送信 |
