@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import NextLink from "next/link";
 import Link from "@mui/material/Link";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -96,7 +95,7 @@ export function TicketTable({ rows, rowCount, query }: TicketTableProps) {
         enableSorting: false,
         enableColumnFilter: false,
         Cell: ({ row, cell }) => (
-          <Link component={NextLink} href={`/tickets/${row.original.id}`} underline="hover">
+          <Link href={`/tickets/${row.original.id}`} underline="hover">
             {cell.getValue<string>()}
           </Link>
         ),

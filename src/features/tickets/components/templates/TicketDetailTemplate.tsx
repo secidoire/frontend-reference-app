@@ -1,4 +1,3 @@
-import NextLink from "next/link";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -21,7 +20,7 @@ type TicketDetailTemplateProps = {
 export function TicketDetailTemplate({ ticket, comments }: TicketDetailTemplateProps) {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Link component={NextLink} href="/tickets" underline="hover">
+      <Link href="/tickets" underline="hover">
         ← 一覧へ戻る
       </Link>
 

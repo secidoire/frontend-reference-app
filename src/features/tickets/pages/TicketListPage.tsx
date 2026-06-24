@@ -1,5 +1,7 @@
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
+import Stack from "@mui/material/Stack";
+import Button from "@mui/material/Button";
 import { listTickets } from "../api/ticketApi";
 import { parseTicketQuery, type RawSearchParams } from "../lib/ticketQuery";
 import { TicketTable } from "../components/organisms/TicketTable";
@@ -19,9 +21,14 @@ export default async function TicketListPage({ searchParams }: TicketListPagePro
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Tickets
-      </Typography>
+      <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+        <Typography variant="h4" component="h1">
+          Tickets
+        </Typography>
+        <Button href="/tickets/new" variant="contained">
+          新規作成
+        </Button>
+      </Stack>
       <TicketTable rows={data} rowCount={total} query={query} />
     </Container>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { createTheme } from "@mui/material/styles";
+import { LinkBehavior } from "@/components/atoms/LinkBehavior";
 
 /**
  * アプリ全体のMUIテーマ。
@@ -31,6 +32,11 @@ const theme = createTheme({
   },
   shape: {
     borderRadius: 8,
+  },
+  components: {
+    // Next.js Link 統合：Link / Button(href) をクライアント遷移にする
+    MuiLink: { defaultProps: { component: LinkBehavior } },
+    MuiButtonBase: { defaultProps: { LinkComponent: LinkBehavior } },
   },
 });
 
