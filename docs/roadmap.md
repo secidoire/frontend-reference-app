@@ -40,7 +40,7 @@
 
 | #   | ステップ     | 画面 / 内容                                                                                         | 利用技術             | 状態 |
 | --- | ------------ | --------------------------------------------------------------------------------------------------- | -------------------- | ---- |
-| 9   | tickets 基盤 | api層（server fetch）+ actions層（Server Actions）+ atoms（StatusChip / PriorityChip）             | RSC / Server Actions | ⬜    |
+| 9   | tickets 基盤 | api層（server fetch）+ actions層（Server Actions）+ atoms（StatusChip / PriorityChip）             | RSC / Server Actions | ✅    |
 | 10  | チケット一覧 | `/tickets`：TicketTable（"use client"）、フィルタ / ソート / ページング                            | Material React Table | ⬜    |
 | 11  | チケット詳細 | `/tickets/[id]`：詳細表示                                                                           | —                    | ⬜    |
 | 12  | コメント     | 詳細画面へ CommentList / CommentItem を統合                                                         | —                    | ⬜    |
