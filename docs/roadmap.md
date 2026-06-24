@@ -42,7 +42,7 @@
 | --- | ------------ | --------------------------------------------------------------------------------------------------- | -------------------- | ---- |
 | 9   | tickets 基盤 | api層（server fetch）+ actions層（Server Actions）+ atoms（StatusChip / PriorityChip）             | RSC / Server Actions | ✅    |
 | 10  | チケット一覧 | `/tickets`：TicketTable（"use client"）、フィルタ / ソート / ページング                            | Material React Table | ✅    |
-| 11  | チケット詳細 | `/tickets/[id]`：詳細表示                                                                           | —                    | ⬜    |
+| 11  | チケット詳細 | `/tickets/[id]`：詳細表示                                                                           | —                    | ✅    |
 | 12  | コメント     | 詳細画面へ CommentList / CommentItem を統合                                                         | —                    | ⬜    |
 | 13  | チケット作成 | `/tickets/new`：TicketForm                                                                          | —                    | ⬜    |
 | 14  | チケット編集 | `/tickets/[id]/edit`：TicketForm 再利用                                                             | —                    | ⬜    |
@@ -74,3 +74,4 @@
 | 2026-06-24 | #8       | Storybook 10.4.6（nextjs-vite）+ addon-vitest（Playwright/Chromium 実ブラウザ）+ msw-storybook-addon。vitest projects を unit/storybook の2本に。StatusChip atom を先取りし story+play関数3件を実ブラウザでgreen（全10件green）。**ハマり**: top-level await不可→async config、provider はファクトリ(`@vitest/browser-playwright`)、SB10.3+はsetProjectAnnotations不要、dep最適化flaky→optimizeDeps.include |
 | 2026-06-24 | #9       | PriorityChip atom 追加（StatusChipは#8で先取り）。#9 tickets基盤 完了。storybook 6件green |
 | 2026-06-24 | #10      | Material React Table 3.2.1（+ x-date-pickers 9.6.0）。`TicketTable`(organism, "use client")を**サーバ駆動**（manual mode）で実装：ページング/ソート/status・priorityフィルタの状態を**URL searchParams を正**に同期→Server Componentが再取得。`lib/ticketQuery`(parse/serialize, pure)+テスト6件。next dev+Expressでフィルタ/ソートのURL駆動を確認。全19件green |
+| 2026-06-24 | #11      | チケット詳細 `/tickets/[id]`。`TicketDetailPage`(Container/RSC: getTicket→無ければnotFound)+`TicketDetailTemplate`(Presentational/template)。app は薄皮。next dev+Expressで t1表示・不明id 404 を確認 |
