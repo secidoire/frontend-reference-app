@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
+import NextLink from "next/link";
+import Link from "@mui/material/Link";
 import { useRouter, usePathname } from "next/navigation";
 import {
   MaterialReactTable,
@@ -88,7 +90,17 @@ export function TicketTable({ rows, rowCount, query }: TicketTableProps) {
 
   const columns = useMemo<MRT_ColumnDef<Ticket>[]>(
     () => [
-      { accessorKey: "title", header: "タイトル", enableSorting: false, enableColumnFilter: false },
+      {
+        accessorKey: "title",
+        header: "タイトル",
+        enableSorting: false,
+        enableColumnFilter: false,
+        Cell: ({ row, cell }) => (
+          <Link component={NextLink} href={`/tickets/${row.original.id}`} underline="hover">
+            {cell.getValue<string>()}
+          </Link>
+        ),
+      },
       {
         accessorKey: "status",
         header: "ステータス",

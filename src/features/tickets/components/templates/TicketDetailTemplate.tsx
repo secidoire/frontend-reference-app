@@ -7,15 +7,18 @@ import Link from "@mui/material/Link";
 import Divider from "@mui/material/Divider";
 import { StatusChip } from "../atoms/StatusChip";
 import { PriorityChip } from "../atoms/PriorityChip";
+import { CommentList } from "@/features/comments/components/organisms/CommentList";
 import { formatDate } from "@/lib/date";
 import type { Ticket } from "../../types";
+import type { Comment } from "@/features/comments/types";
 
 type TicketDetailTemplateProps = {
   ticket: Ticket;
+  comments: Comment[];
 };
 
 /** チケット詳細の表示テンプレート（Presentational）。ドメイン画面の構成を担う。 */
-export function TicketDetailTemplate({ ticket }: TicketDetailTemplateProps) {
+export function TicketDetailTemplate({ ticket, comments }: TicketDetailTemplateProps) {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Link component={NextLink} href="/tickets" underline="hover">
@@ -48,6 +51,11 @@ export function TicketDetailTemplate({ ticket }: TicketDetailTemplateProps) {
           </Field>
         </Stack>
       </Paper>
+
+      <Typography variant="h6" component="h2" sx={{ mt: 4, mb: 2 }}>
+        コメント
+      </Typography>
+      <CommentList comments={comments} />
     </Container>
   );
 }
