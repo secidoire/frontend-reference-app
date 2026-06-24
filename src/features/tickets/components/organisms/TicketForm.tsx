@@ -7,7 +7,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
 import { useTicketForm } from "../../hooks/useTicketForm";
-import type { FormState } from "../../actions/formState";
+import type { TicketActionResult } from "../../actions/actionResult";
 import type { Ticket } from "../../types";
 
 const STATUS_OPTIONS: [Ticket["status"], string][] = [
@@ -27,11 +27,11 @@ export type TicketFormDefaults = Partial<
 >;
 
 type TicketFormProps = {
-  action: (prev: FormState, formData: FormData) => Promise<FormState>;
+  action: (prev: TicketActionResult | null, formData: FormData) => Promise<TicketActionResult>;
   defaultValues?: TicketFormDefaults;
   submitLabel: string;
-  /** 成功時に呼ばれる（ダイアログを閉じる等）。フォーム自身は設置文脈を知らない。 */
-  onSuccess?: () => void;
+  /** 送信完了ごとに実行結果を親へ通知（親が閉じる等を決める）。フォームは設置文脈を知らない。 */
+  onResult?: (result: TicketActionResult) => void;
 };
 
 /**
@@ -39,8 +39,8 @@ type TicketFormProps = {
  * Server Action を `action` prop で受け取り、useActionState で送信状態とエラーを扱う。
  * 作成・編集の双方で再利用する（defaultValues の有無で切り替え）。
  */
-export function TicketForm({ action, defaultValues, submitLabel, onSuccess }: TicketFormProps) {
-  const { error, formAction, isPending } = useTicketForm(action, onSuccess);
+export function TicketForm({ action, defaultValues, submitLabel, onResult }: TicketFormProps) {
+  const { error, formAction, isPending } = useTicketForm(action, onResult);
   const d = defaultValues ?? {};
 
   return (

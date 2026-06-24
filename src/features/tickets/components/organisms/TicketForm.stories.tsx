@@ -1,11 +1,27 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, fn, userEvent, within } from "storybook/test";
 import { TicketForm } from "./TicketForm";
+import type { TicketActionResult } from "../../actions/actionResult";
+import type { Ticket } from "../../types";
+
+const dummyTicket: Ticket = {
+  id: "t-new",
+  title: "新しいチケット",
+  description: "",
+  status: "TODO",
+  priority: "MEDIUM",
+  assigneeId: "u1",
+  createdAt: "2026-06-25T00:00:00.000Z",
+  updatedAt: "2026-06-25T00:00:00.000Z",
+};
 
 const meta = {
   title: "tickets/organisms/TicketForm",
   component: TicketForm,
-  args: { action: fn(async () => ({})), submitLabel: "作成" },
+  args: {
+    action: fn(async (): Promise<TicketActionResult> => ({ ok: true, ticket: dummyTicket })),
+    submitLabel: "作成",
+  },
 } satisfies Meta<typeof TicketForm>;
 
 export default meta;
@@ -51,22 +67,27 @@ export const Edit: Story = {
 };
 
 export const Success: Story = {
-  args: { action: fn(async () => ({ ok: true })), onSuccess: fn() },
+  args: {
+    action: fn(async (): Promise<TicketActionResult> => ({ ok: true, ticket: dummyTicket })),
+    onResult: fn(),
+  },
   play: async ({ args, canvasElement, step }) => {
     const canvas = within(canvasElement);
-    await step("When: 入力して送信する（action が ok を返す）", async () => {
+    await step("When: 入力して送信する（action が ok 結果を返す）", async () => {
       await userEvent.type(canvas.getByLabelText(/タイトル/), "x");
       await userEvent.type(canvas.getByLabelText(/担当/), "u1");
       await userEvent.click(canvas.getByRole("button", { name: "作成" }));
     });
-    await step("Then: onSuccess が呼ばれる（呼び出し側がダイアログを閉じられる）", async () => {
-      await expect(args.onSuccess).toHaveBeenCalled();
+    await step("Then: onResult が ok 結果で呼ばれる（親がダイアログを閉じられる）", async () => {
+      await expect(args.onResult).toHaveBeenCalledWith({ ok: true, ticket: dummyTicket });
     });
   },
 };
 
 export const ShowsError: Story = {
-  args: { action: fn(async () => ({ error: "作成に失敗しました" })) },
+  args: {
+    action: fn(async (): Promise<TicketActionResult> => ({ ok: false, error: "作成に失敗しました" })),
+  },
   play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement);
     await step("When: 必須項目を満たして送信する（actionがエラーを返す）", async () => {

@@ -16,6 +16,7 @@ import {
   createTicketInlineAction,
   updateTicketFormAction,
 } from "./ticketActions";
+import type { TicketActionResult } from "./actionResult";
 import { listTickets, getTicket } from "../api/ticketApi";
 
 function ticketForm(values: Record<string, string>): FormData {
@@ -68,76 +69,82 @@ describe("ticketActions（core）", () => {
   });
 });
 
+/** 結果からエラー文言を取り出す（ok 判別で型を絞る）。 */
+function errorOf(result: TicketActionResult): string | undefined {
+  return result.ok ? undefined : result.error;
+}
+
 describe("createTicketFormAction（form-bound）", () => {
-  it("タイトル未入力は state.error を返す", async () => {
+  it("タイトル未入力は error 結果を返す", async () => {
     const fd = new FormData();
     fd.set("priority", "LOW");
     fd.set("assigneeId", "u1");
-    const result = await createTicketFormAction({}, fd);
-    expect(result.error).toBeTruthy();
+    const result = await createTicketFormAction(null, fd);
+    expect(errorOf(result)).toBeTruthy();
     expect(redirect).not.toHaveBeenCalled();
   });
 
   it("成功時は作成後に詳細へ redirect する", async () => {
     const fd = ticketForm({ title: "フォーム作成", description: "d", priority: "HIGH", assigneeId: "u2" });
-    await createTicketFormAction({}, fd);
+    await createTicketFormAction(null, fd);
     expect(redirect).toHaveBeenCalledWith(expect.stringMatching(/^\/tickets\/.+/));
   });
 
-  it("優先度が不正なら state.error を返す", async () => {
+  it("優先度が不正なら error 結果を返す", async () => {
     const fd = ticketForm({ title: "x", priority: "URGENT", assigneeId: "u1" });
-    const result = await createTicketFormAction({}, fd);
-    expect(result.error).toBeTruthy();
+    const result = await createTicketFormAction(null, fd);
+    expect(errorOf(result)).toBeTruthy();
   });
 
-  it("API がエラーなら state.error を返し redirect しない", async () => {
+  it("API がエラーなら error 結果を返し redirect しない", async () => {
     server.use(http.post("*/api/tickets", () => new HttpResponse(null, { status: 500 })));
     const fd = ticketForm({ title: "x", description: "d", priority: "LOW", assigneeId: "u1" });
-    const result = await createTicketFormAction({}, fd);
-    expect(result.error).toBeTruthy();
+    const result = await createTicketFormAction(null, fd);
+    expect(errorOf(result)).toBeTruthy();
     expect(redirect).not.toHaveBeenCalled();
   });
 });
 
 describe("createTicketInlineAction（ダイアログ用）", () => {
-  it("成功時は ok を返し redirect しない", async () => {
+  it("成功時は ok と作成された ticket を返し redirect しない", async () => {
     const fd = ticketForm({ title: "ダイアログ作成", description: "d", priority: "LOW", assigneeId: "u1" });
-    const result = await createTicketInlineAction({}, fd);
+    const result = await createTicketInlineAction(null, fd);
     expect(result.ok).toBe(true);
+    if (result.ok) expect(result.ticket.title).toBe("ダイアログ作成");
     expect(redirect).not.toHaveBeenCalled();
   });
 
-  it("検証エラーは state.error を返す", async () => {
-    const result = await createTicketInlineAction({}, ticketForm({ priority: "LOW", assigneeId: "u1" }));
-    expect(result.error).toBeTruthy();
+  it("検証エラーは error 結果を返す", async () => {
+    const result = await createTicketInlineAction(null, ticketForm({ priority: "LOW", assigneeId: "u1" }));
+    expect(errorOf(result)).toBeTruthy();
   });
 
-  it("API がエラーなら state.error を返す", async () => {
+  it("API がエラーなら error 結果を返す", async () => {
     server.use(http.post("*/api/tickets", () => new HttpResponse(null, { status: 500 })));
     const fd = ticketForm({ title: "x", description: "d", priority: "LOW", assigneeId: "u1" });
-    const result = await createTicketInlineAction({}, fd);
-    expect(result.error).toBeTruthy();
+    const result = await createTicketInlineAction(null, fd);
+    expect(errorOf(result)).toBeTruthy();
   });
 });
 
 describe("updateTicketFormAction（form-bound）", () => {
   it("成功時は詳細へ redirect する", async () => {
     const fd = ticketForm({ title: "更新後", description: "d", priority: "MEDIUM", assigneeId: "u1", status: "DONE" });
-    await updateTicketFormAction("t1", {}, fd);
+    await updateTicketFormAction("t1", null, fd);
     expect(redirect).toHaveBeenCalledWith("/tickets/t1");
   });
 
-  it("タイトル未入力は state.error を返す", async () => {
+  it("タイトル未入力は error 結果を返す", async () => {
     const fd = ticketForm({ priority: "LOW", assigneeId: "u1" });
-    const result = await updateTicketFormAction("t1", {}, fd);
-    expect(result.error).toBeTruthy();
+    const result = await updateTicketFormAction("t1", null, fd);
+    expect(errorOf(result)).toBeTruthy();
     expect(redirect).not.toHaveBeenCalled();
   });
 
-  it("API がエラーなら state.error を返す", async () => {
+  it("API がエラーなら error 結果を返す", async () => {
     server.use(http.patch("*/api/tickets/:id", () => new HttpResponse(null, { status: 500 })));
     const fd = ticketForm({ title: "x", description: "d", priority: "LOW", assigneeId: "u1" });
-    const result = await updateTicketFormAction("t1", {}, fd);
-    expect(result.error).toBeTruthy();
+    const result = await updateTicketFormAction("t1", null, fd);
+    expect(errorOf(result)).toBeTruthy();
   });
 });

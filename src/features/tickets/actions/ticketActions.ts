@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { apiClient } from "@/services/apiClient";
 import type { CreateTicketInput, UpdateTicketInput, TicketPriority, TicketStatus } from "../types";
-import type { FormState } from "./formState";
+import type { TicketActionResult } from "./actionResult";
 
 /**
  * tickets の **書き込み** = Server Actions。
@@ -73,54 +73,54 @@ function parseTicketForm(formData: FormData): { input: CreateTicketInput } | { e
 
 /** 作成フォーム用 Server Action。成功で詳細へ遷移、失敗は state.error を返す。 */
 export async function createTicketFormAction(
-  _prev: FormState,
+  _prev: TicketActionResult | null,
   formData: FormData,
-): Promise<FormState> {
+): Promise<TicketActionResult> {
   const parsed = parseTicketForm(formData);
-  if ("error" in parsed) return { error: parsed.error };
+  if ("error" in parsed) return { ok: false, error: parsed.error };
 
   let created;
   try {
     created = await createTicketAction(parsed.input);
   } catch {
-    return { error: "作成に失敗しました" };
+    return { ok: false, error: "作成に失敗しました" };
   }
   redirect(`/tickets/${created.id}`); // 成功時のみ（try外。redirectはNEXT_REDIRECTをthrow）
 }
 
 /**
  * ダイアログ等の「その場で作成」用 Server Action。
- * 画面遷移せず、一覧を revalidate して成功シグナル（ok）を返す。
- * 呼び出し側（ダイアログ）は ok を見て自分で閉じる。
+ * 画面遷移せず、一覧を revalidate して **実行結果（作成された ticket）** を返す。
+ * 呼び出し側（ダイアログ）は result.ok を見て分岐する。
  */
 export async function createTicketInlineAction(
-  _prev: FormState,
+  _prev: TicketActionResult | null,
   formData: FormData,
-): Promise<FormState> {
+): Promise<TicketActionResult> {
   const parsed = parseTicketForm(formData);
-  if ("error" in parsed) return { error: parsed.error };
+  if ("error" in parsed) return { ok: false, error: parsed.error };
 
   try {
-    await createTicketAction(parsed.input); // /tickets を revalidate
+    const ticket = await createTicketAction(parsed.input); // /tickets を revalidate
+    return { ok: true, ticket };
   } catch {
-    return { error: "作成に失敗しました" };
+    return { ok: false, error: "作成に失敗しました" };
   }
-  return { ok: true };
 }
 
 /** 編集フォーム用 Server Action。id を bind して使う。 */
 export async function updateTicketFormAction(
   id: string,
-  _prev: FormState,
+  _prev: TicketActionResult | null,
   formData: FormData,
-): Promise<FormState> {
+): Promise<TicketActionResult> {
   const parsed = parseTicketForm(formData);
-  if ("error" in parsed) return { error: parsed.error };
+  if ("error" in parsed) return { ok: false, error: parsed.error };
 
   try {
     await updateTicketAction(id, parsed.input);
   } catch {
-    return { error: "更新に失敗しました" };
+    return { ok: false, error: "更新に失敗しました" };
   }
   redirect(`/tickets/${id}`);
 }

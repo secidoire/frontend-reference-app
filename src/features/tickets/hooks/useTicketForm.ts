@@ -1,26 +1,31 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
-import type { FormState } from "../actions/formState";
+import type { TicketActionResult } from "../actions/actionResult";
 
 /**
  * チケットフォームの状態管理を集約する Custom Hook。
- * useActionState をラップし、UI（TicketForm）からは送信状態・エラーだけを見えるようにする。
+ * フォームの中で送信・状態を**カプセル化**し、外へは「結果（result）」だけを通知する。
  *
- * `onSuccess` を渡すと、アクションが成功シグナル（state.ok）を返したときに発火する。
- * これにより **フォームはダイアログを知らないまま**、呼び出し側が「閉じる」等を行える。
+ * `onResult` … 送信完了ごとに API 実行結果を親へ渡す（ダイアログの開閉などは親が決める）。
+ * 戻り値の `error` … 失敗時のメッセージ（フォーム内の表示用）。
  *
- * ねらい: フォームの「状態管理」と「マークアップ」「設置文脈（ページ/ダイアログ）」を分離する。
+ * ねらい: フォームは設置文脈（ページ/ダイアログ）を知らないまま、
+ * 「結果を返す」ことだけ約束する（WinForms のダイアログ結果のようなイメージ）。
  */
 export function useTicketForm(
-  action: (prev: FormState, formData: FormData) => Promise<FormState>,
-  onSuccess?: () => void,
+  action: (prev: TicketActionResult | null, formData: FormData) => Promise<TicketActionResult>,
+  onResult?: (result: TicketActionResult) => void,
 ) {
-  const [state, formAction, isPending] = useActionState<FormState, FormData>(action, {});
+  const [result, formAction, isPending] = useActionState<TicketActionResult | null, FormData>(
+    action,
+    null,
+  );
 
   useEffect(() => {
-    if (state.ok) onSuccess?.();
-  }, [state, onSuccess]);
+    if (result) onResult?.(result);
+  }, [result, onResult]);
 
-  return { error: state.error, formAction, isPending };
+  const error = result && !result.ok ? result.error : undefined;
+  return { error, formAction, isPending, result };
 }
