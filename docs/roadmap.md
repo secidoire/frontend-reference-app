@@ -45,7 +45,7 @@
 | 11  | チケット詳細 | `/tickets/[id]`：詳細表示                                                                           | —                    | ✅    |
 | 12  | コメント     | 詳細画面へ CommentList / CommentItem を統合                                                         | —                    | ✅    |
 | 13  | チケット作成 | `/tickets/new`：TicketForm                                                                          | Server Actions       | ✅    |
-| 14  | チケット編集 | `/tickets/[id]/edit`：TicketForm 再利用                                                             | —                    | ⬜    |
+| 14  | チケット編集 | `/tickets/[id]/edit`：TicketForm 再利用                                                             | Server Actions       | ✅    |
 | 15  | 分析         | `/analytics`：ステータス別 / 担当者別 / 月次推移                                                    | Plotly               | ⬜    |
 
 ### Phase C — 仕上げ
@@ -77,3 +77,4 @@
 | 2026-06-24 | #11      | チケット詳細 `/tickets/[id]`。`TicketDetailPage`(Container/RSC: getTicket→無ければnotFound)+`TicketDetailTemplate`(Presentational/template)。app は薄皮。next dev+Expressで t1表示・不明id 404 を確認 |
 | 2026-06-24 | #12      | コメント。`comments/api/commentApi`(listComments) + `CommentItem`(molecule)/`CommentList`(organism)。詳細Pageで ticket/comments を Promise.all 並行取得→Templateに統合。一覧タイトル→詳細リンク追加。t1=2件/t3=空 を確認 |
 | 2026-06-24 | #13      | チケット作成 `/tickets/new`。`TicketForm`(organism,"use client", useActionState)を create/edit 共用設計で実装。`createTicketFormAction`(form-bound Server Action: parse→POST→revalidate→redirect)。**ハマり**: Server Component から MUI Link/Button に `component={NextLink}`(関数)を渡すと静的プリレンダで失敗→MUI公式の `LinkBehavior` をテーマ既定に設定して解消。一覧に新規作成ボタン |
+| 2026-06-24 | #14      | チケット編集 `/tickets/[id]/edit`。`TicketEditPage`(getTicket→notFound、`updateTicketFormAction.bind(null,id)`)で TicketForm を defaultValues 付き再利用。詳細に編集ボタン。t1編集の初期値プリフィル・不明id 404 を確認 |
