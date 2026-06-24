@@ -7,7 +7,7 @@
 | 分類 | 採用 | バージョン方針 |
 |------|------|--------------|
 | Framework | Next.js (App Router) | 16.x |
-| 言語 | TypeScript | 6.x |
+| 言語 | TypeScript | 5.9.x（周辺ツールのpeer `^5` に準拠。TS6は openapi-typescript 等が未対応のため見送り） |
 | UI | React | 19.x |
 | UIライブラリ | Material UI | 後続ステップで導入 |
 | テーブル | Material React Table | 〃 |

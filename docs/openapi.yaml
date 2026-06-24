@@ -1,0 +1,264 @@
+openapi: 3.1.0
+info:
+  title: Ticket Management API
+  version: 1.0.0
+  description: |
+    チケット管理システムのAPI契約（単一の正 / source of truth）。
+    要件定義書 6章（データモデル）・7章（API仕様）を OpenAPI へ格上げしたもの。
+    このファイルを正として src/types/api.ts を生成する（npm run gen:api）。
+
+servers:
+  - url: /
+    description: ベースURLは API_BASE_URL（例 http://localhost:4000）で注入する
+
+tags:
+  - name: tickets
+  - name: comments
+  - name: analytics
+
+paths:
+  /api/tickets:
+    get:
+      tags: [tickets]
+      operationId: listTickets
+      summary: チケット一覧（フィルタ / ソート / ページング）
+      parameters:
+        - { name: status, in: query, required: false, schema: { $ref: "#/components/schemas/TicketStatus" } }
+        - { name: priority, in: query, required: false, schema: { $ref: "#/components/schemas/TicketPriority" } }
+        - { name: assigneeId, in: query, required: false, schema: { type: string } }
+        - { name: search, in: query, required: false, schema: { type: string }, description: タイトル部分一致 }
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [createdAt, updatedAt, priority, status]
+            default: createdAt
+        - name: order
+          in: query
+          required: false
+          schema: { type: string, enum: [asc, desc], default: desc }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TicketListResponse" }
+    post:
+      tags: [tickets]
+      operationId: createTicket
+      summary: チケット作成
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateTicketInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ticket" }
+
+  /api/tickets/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [tickets]
+      operationId: getTicket
+      summary: チケット詳細
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ticket" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      tags: [tickets]
+      operationId: updateTicket
+      summary: チケット更新
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateTicketInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ticket" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [tickets]
+      operationId: deleteTicket
+      summary: チケット削除
+      responses:
+        "204": { description: No Content }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/tickets/{id}/comments:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [comments]
+      operationId: listComments
+      summary: コメント一覧
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Comment" }
+    post:
+      tags: [comments]
+      operationId: createComment
+      summary: コメント作成
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateCommentInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Comment" }
+
+  /api/analytics:
+    get:
+      tags: [analytics]
+      operationId: getAnalytics
+      summary: 集計（ステータス別 / 担当者別 / 月次作成数）
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Analytics" }
+
+components:
+  responses:
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+    TicketStatus:
+      type: string
+      enum: [TODO, IN_PROGRESS, REVIEW, DONE]
+
+    TicketPriority:
+      type: string
+      enum: [LOW, MEDIUM, HIGH]
+
+    Ticket:
+      type: object
+      required: [id, title, description, status, priority, assigneeId, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string }
+        status: { $ref: "#/components/schemas/TicketStatus" }
+        priority: { $ref: "#/components/schemas/TicketPriority" }
+        assigneeId: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateTicketInput:
+      type: object
+      required: [title, description, priority, assigneeId]
+      properties:
+        title: { type: string, minLength: 1 }
+        description: { type: string }
+        status: { $ref: "#/components/schemas/TicketStatus" }
+        priority: { $ref: "#/components/schemas/TicketPriority" }
+        assigneeId: { type: string }
+
+    UpdateTicketInput:
+      type: object
+      properties:
+        title: { type: string, minLength: 1 }
+        description: { type: string }
+        status: { $ref: "#/components/schemas/TicketStatus" }
+        priority: { $ref: "#/components/schemas/TicketPriority" }
+        assigneeId: { type: string }
+
+    TicketListResponse:
+      type: object
+      required: [data, total, page, pageSize]
+      properties:
+        data:
+          type: array
+          items: { $ref: "#/components/schemas/Ticket" }
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+
+    User:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string }
+        name: { type: string }
+
+    Comment:
+      type: object
+      required: [id, ticketId, authorId, content, createdAt]
+      properties:
+        id: { type: string }
+        ticketId: { type: string }
+        authorId: { type: string }
+        content: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CreateCommentInput:
+      type: object
+      required: [authorId, content]
+      properties:
+        authorId: { type: string }
+        content: { type: string, minLength: 1 }
+
+    Analytics:
+      type: object
+      required: [byStatus, byAssignee, monthlyCreated]
+      properties:
+        byStatus:
+          type: array
+          items:
+            type: object
+            required: [status, count]
+            properties:
+              status: { $ref: "#/components/schemas/TicketStatus" }
+              count: { type: integer }
+        byAssignee:
+          type: array
+          items:
+            type: object
+            required: [assigneeId, count]
+            properties:
+              assigneeId: { type: string }
+              count: { type: integer }
+        monthlyCreated:
+          type: array
+          items:
+            type: object
+            required: [month, count]
+            properties:
+              month: { type: string, description: "YYYY-MM" }
+              count: { type: integer }
+
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+        code: { type: string }
