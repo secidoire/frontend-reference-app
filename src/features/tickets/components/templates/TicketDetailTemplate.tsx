@@ -3,10 +3,10 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Link from "@mui/material/Link";
-import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import { StatusChip } from "../atoms/StatusChip";
 import { PriorityChip } from "../atoms/PriorityChip";
+import { TicketEditDialog } from "../organisms/TicketEditDialog";
 import { CommentList } from "@/features/comments/components/organisms/CommentList";
 import { formatDate } from "@/lib/date";
 import type { Ticket } from "../../types";
@@ -34,9 +34,7 @@ export function TicketDetailTemplate({ ticket, comments }: TicketDetailTemplateP
         <Typography variant="h4" component="h1">
           {ticket.title}
         </Typography>
-        <Button href={`/tickets/${ticket.id}/edit`} variant="outlined">
-          編集
-        </Button>
+        <TicketEditDialog ticket={ticket} />
       </Stack>
 
       <Paper variant="outlined" sx={{ mt: 3, p: 3 }}>

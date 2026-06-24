@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { apiClient } from "@/services/apiClient";
 import type { CreateTicketInput, UpdateTicketInput, TicketPriority, TicketStatus } from "../types";
 import type { TicketActionResult } from "./actionResult";
@@ -71,27 +70,9 @@ function parseTicketForm(formData: FormData): { input: CreateTicketInput } | { e
   return { input };
 }
 
-/** 作成フォーム用 Server Action。成功で詳細へ遷移、失敗は state.error を返す。 */
-export async function createTicketFormAction(
-  _prev: TicketActionResult | null,
-  formData: FormData,
-): Promise<TicketActionResult> {
-  const parsed = parseTicketForm(formData);
-  if ("error" in parsed) return { ok: false, error: parsed.error };
-
-  let created;
-  try {
-    created = await createTicketAction(parsed.input);
-  } catch {
-    return { ok: false, error: "作成に失敗しました" };
-  }
-  redirect(`/tickets/${created.id}`); // 成功時のみ（try外。redirectはNEXT_REDIRECTをthrow）
-}
-
 /**
- * ダイアログ等の「その場で作成」用 Server Action。
- * 画面遷移せず、一覧を revalidate して **実行結果（作成された ticket）** を返す。
- * 呼び出し側（ダイアログ）は result.ok を見て分岐する。
+ * 作成フォーム用 Server Action。画面遷移せず **実行結果（作成された ticket）** を返す。
+ * 「その後どうするか（閉じる/遷移）」は呼び出し側が result を見て決める。
  */
 export async function createTicketInlineAction(
   _prev: TicketActionResult | null,
@@ -108,8 +89,11 @@ export async function createTicketInlineAction(
   }
 }
 
-/** 編集フォーム用 Server Action。id を bind して使う。 */
-export async function updateTicketFormAction(
+/**
+ * 編集フォーム用 Server Action。id を bind して使う。
+ * 画面遷移せず **実行結果（更新された ticket）** を返す（revalidate 済み）。
+ */
+export async function updateTicketInlineAction(
   id: string,
   _prev: TicketActionResult | null,
   formData: FormData,
@@ -118,9 +102,9 @@ export async function updateTicketFormAction(
   if ("error" in parsed) return { ok: false, error: parsed.error };
 
   try {
-    await updateTicketAction(id, parsed.input);
+    const ticket = await updateTicketAction(id, parsed.input); // /tickets, /tickets/[id] を revalidate
+    return { ok: true, ticket };
   } catch {
     return { ok: false, error: "更新に失敗しました" };
   }
-  redirect(`/tickets/${id}`);
 }

@@ -7,6 +7,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
 import { useTicketForm } from "../../hooks/useTicketForm";
+import { createTicketInlineAction, updateTicketInlineAction } from "../../actions/ticketActions";
 import type { TicketActionResult } from "../../actions/actionResult";
 import type { Ticket } from "../../types";
 
@@ -22,26 +23,28 @@ const PRIORITY_OPTIONS: [Ticket["priority"], string][] = [
   ["HIGH", "高"],
 ];
 
-export type TicketFormDefaults = Partial<
-  Pick<Ticket, "title" | "description" | "status" | "priority" | "assigneeId">
->;
-
 type TicketFormProps = {
-  action: (prev: TicketActionResult | null, formData: FormData) => Promise<TicketActionResult>;
-  defaultValues?: TicketFormDefaults;
-  submitLabel: string;
+  /** 渡されれば編集、無ければ作成。フォームはこれで「自分が何をするか」を決める。 */
+  ticket?: Ticket;
   /** 送信完了ごとに実行結果を親へ通知（親が閉じる等を決める）。フォームは設置文脈を知らない。 */
   onResult?: (result: TicketActionResult) => void;
 };
 
 /**
- * チケットのフォーム（Presentational / organism, "use client"）。
- * Server Action を `action` prop で受け取り、useActionState で送信状態とエラーを扱う。
- * 作成・編集の双方で再利用する（defaultValues の有無で切り替え）。
+ * チケットのフォーム（organism, "use client"）。
+ *
+ * ドメイン固有のフォームなので、**create / update のどちらを実行するかは
+ * `ticket` の有無（= mode）から自分で決める**（アクションを外から注入しない）。
+ * 一方「その後どうするか（閉じる/遷移）」は設置文脈の話なので親へ（onResult）。
+ * → 永続化＝mode で自己決定、after-action＝文脈で親が決定、という責務分割。
  */
-export function TicketForm({ action, defaultValues, submitLabel, onResult }: TicketFormProps) {
+export function TicketForm({ ticket, onResult }: TicketFormProps) {
+  const action = ticket
+    ? updateTicketInlineAction.bind(null, ticket.id)
+    : createTicketInlineAction;
+  const submitLabel = ticket ? "更新" : "作成";
   const { error, formAction, isPending } = useTicketForm(action, onResult);
-  const d = defaultValues ?? {};
+  const d: Partial<Ticket> = ticket ?? {};
 
   return (
     <Box component="form" action={formAction}>
