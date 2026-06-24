@@ -22,6 +22,8 @@
     "@mui/icons-material": "^9.1.1",
     "@mui/material": "^9.1.2",
     "@mui/material-nextjs": "^9.1.1",
+    "@mui/x-date-pickers": "^9.6.0",
+    "material-react-table": "^3.2.1",
     "next": "^16.2.9",
     "openapi-fetch": "^0.17.0",
     "react": "^19.2.7",

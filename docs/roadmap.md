@@ -41,7 +41,7 @@
 | #   | ステップ     | 画面 / 内容                                                                                         | 利用技術             | 状態 |
 | --- | ------------ | --------------------------------------------------------------------------------------------------- | -------------------- | ---- |
 | 9   | tickets 基盤 | api層（server fetch）+ actions層（Server Actions）+ atoms（StatusChip / PriorityChip）             | RSC / Server Actions | ✅    |
-| 10  | チケット一覧 | `/tickets`：TicketTable（"use client"）、フィルタ / ソート / ページング                            | Material React Table | ⬜    |
+| 10  | チケット一覧 | `/tickets`：TicketTable（"use client"）、フィルタ / ソート / ページング                            | Material React Table | ✅    |
 | 11  | チケット詳細 | `/tickets/[id]`：詳細表示                                                                           | —                    | ⬜    |
 | 12  | コメント     | 詳細画面へ CommentList / CommentItem を統合                                                         | —                    | ⬜    |
 | 13  | チケット作成 | `/tickets/new`：TicketForm                                                                          | —                    | ⬜    |
@@ -72,3 +72,5 @@
 | 2026-06-24 | #6       | MSW 2.14.6。契約準拠のモックバックエンド（handlers: tickets/comments/analytics）+ 可変DB(`resetDb`) + 独立fixtures。`server.ts`(node/Vitest) / `browser.ts`(Storybook)。tsx で filter/sort/paging・CRUD・analytics を実行時検証 |
 | 2026-06-24 | #7       | Vitest 4.1.9 + Testing Library + jsdom。`vitest.config`(native tsconfigPaths) + setup(MSW server起動・resetDb)。`lib/date`(純粋関数) と `ticketApi`(MSW結合) のテスト計7件green。**ハマり**: openapi-fetchがcreateClient時にfetchをキャプチャ→MSW未intercept。`fetch:(req)=>fetch(req)`で呼出時解決に修正 |
 | 2026-06-24 | #8       | Storybook 10.4.6（nextjs-vite）+ addon-vitest（Playwright/Chromium 実ブラウザ）+ msw-storybook-addon。vitest projects を unit/storybook の2本に。StatusChip atom を先取りし story+play関数3件を実ブラウザでgreen（全10件green）。**ハマり**: top-level await不可→async config、provider はファクトリ(`@vitest/browser-playwright`)、SB10.3+はsetProjectAnnotations不要、dep最適化flaky→optimizeDeps.include |
+| 2026-06-24 | #9       | PriorityChip atom 追加（StatusChipは#8で先取り）。#9 tickets基盤 完了。storybook 6件green |
+| 2026-06-24 | #10      | Material React Table 3.2.1（+ x-date-pickers 9.6.0）。`TicketTable`(organism, "use client")を**サーバ駆動**（manual mode）で実装：ページング/ソート/status・priorityフィルタの状態を**URL searchParams を正**に同期→Server Componentが再取得。`lib/ticketQuery`(parse/serialize, pure)+テスト6件。next dev+Expressでフィルタ/ソートのURL駆動を確認。全19件green |
