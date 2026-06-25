@@ -232,12 +232,49 @@ it("ソート変更で URL を更新する", () => {
 
 > 指針：**フックに寄せられるロジックは寄せる**。ロジックは Vitest（速い・ブラウザ無し）、見た目は Storybook（実ブラウザ）で、と住み分けられる（7章）。
 
+### 5.1 ブラウザ API は薄いラッパ越しに（テスト容易性 & SSR 安全）
+
+> **結論：`window` / `localStorage` / `navigator` などのブラウザ API はロジックから直叩きせず、薄いラッパ（フック or 関数）越しに使う。狙いは「Vitest で差し替え可能にする」ことと「SSR 安全性を1か所に閉じ込める」こと。**
+
+5章本体は「状態ロジックをフックへ寄せてテスト可能にする」話だった。その延長で、**フック/ロジックがブラウザ API に触れる場合**も同じ理由でラッパを1枚挟む。
+
+- **なぜ？** グローバル（`window` 等）を直接読むと、Vitest（jsdom）では実体をモンキーパッチするしかなく、テストが壊れやすい。ラッパ越しなら**差し替え（モック）が一点で済む**。加えて、サーバでは `window` が `undefined` なので、**SSR 安全ガード（`typeof window === "undefined"`）をラッパ内に閉じ込められる**（second benefit）。
+- **やらないと：** `localStorage.getItem(...)` がコンポーネント/フックに散らばり、テストごとにグローバルを書き換え、SSR で実行されて落ちる箇所が点在する。
+- **本実装（既にやっている）：** 履歴・URL 操作は素の `window.history` ではなく **`next/navigation`（`useRouter`/`usePathname`）** を使い、テストは `vi.mock("next/navigation")` で差し替えている（[useTicketTableState](../src/features/tickets/hooks/useTicketTableState.ts)）。`window` 依存の Plotly は `dynamic(..., { ssr:false })` でクライアントへ隔離している（[PlotlyChart](../src/features/analytics/components/molecules/PlotlyChart.tsx)）。**つまりこの原則は新規コードではなく既存パターンの言語化**。
+
+**ガードレール（「全部ラップ」を避ける）**：抽象化レイヤの作りすぎは過剰設計。線引きは1本：
+
+1. **ラップするのは「Vitest でテストしたいロジック」がブラウザ API に触れるときだけ。** 見た目側は Storybook（実ブラウザ）で本物の API を使えるのでラッパ不要。
+2. **フレームワークが既にラッパを提供しているものは再発明しない。** 履歴操作は `next/navigation` を使い、自前 `useLocation` を作らない。
+3. **ラッパが要るのは framework が面倒を見ていない素のブラウザ API だけ**（例：`localStorage`, `matchMedia`, `navigator.clipboard`, `Notification`）。
+
+```ts
+// ❌ フック内でグローバル直叩き：jsdom でグローバルを書き換えないとテストできず、SSR で落ちる
+function useTheme() {
+  const saved = localStorage.getItem("theme"); // ← SSR で undefined、テストで monkeypatch 必須
+  // ...
+}
+
+// ✅ 薄いラッパに隔離：SSR ガードを1か所に閉じ込め、テストは storage を差し替えるだけ
+const storage = {
+  get(key: string) {
+    if (typeof window === "undefined") return null; // SSR 安全をここに閉じ込める
+    return window.localStorage.getItem(key);
+  },
+};
+function useTheme() {
+  const saved = storage.get("theme"); // ← テストは storage.get をモックすれば済む
+  // ...
+}
+```
+
 > **▶ 試す**：`npm run test:run` で本章のフックテストが走る（`useTicketTableState.test.ts`）。
 
 > **✅ この章のチェック**
 > - □ 状態 + 更新ロジックをフックに寄せ、コンポーネントは表示に専念しているか
 > - □ そのフックは `next/*` をモックしてブラウザ無しでテストできるか
 > - □ 純粋な見た目マッピングまでフックに入れていないか（それは atom）
+> - □ ロジックがブラウザ API を直叩きしていないか（ラッパ越しか／framework のラッパを使えないか）
 
 ---
 
