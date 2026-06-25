@@ -383,10 +383,38 @@ function TicketForm({ ticket, onResult }) {
 
 > **▶ 試す**：`npm run test:run`（unit + storybook）／ `npm run test:coverage`（下限90%判定）。
 
+### 7.1 インタラクションテスト（play）を楽にする4つの型
+
+> **結論：play を「意図」だけにする。フィクスチャはファクトリ、portal はヘルパー、コールバックは `fn()`、ドメイン送信の継ぎ目はフックテストへ。**
+
+Storybook の play は実ブラウザで遅く壊れやすい（7章本体）。だから play 自体の **記述コストと壊れやすさを下げる**型を用意しておく。
+
+| 型 | 何が楽になるか | 本実装 |
+|----|--------------|--------|
+| **① フィクスチャはファクトリ** | `const t: Ticket = {…}` の手書きを撲滅。型増減に1か所で追従し、テストは差分だけ書く | [makeTicket](../src/features/tickets/test/makeTicket.ts)（`makeTicket({ status: "DONE" })`） |
+| **② portal は専用ヘルパーでスコープ** | Dialog/Menu は portal で `document.body` 直下に出る＝`within(canvasElement)` の外。`dialog()` で `role="dialog"` に限定して引く | [test/storybook](../src/test/storybook.ts) の `dialog()` / `queryDialog()` |
+| **③ コールバックは `fn()` でスパイ** | 「閉じた等」の間接 DOM 証拠でなく、`onClose` 等の**継ぎ目を直接**アサート（`expect(args.onClose).toHaveBeenCalled()`） | [FormDialog.stories](../src/components/molecules/FormDialog.stories.tsx) |
+| **④ ドメイン送信の継ぎ目は play に持ち込まない** | 送信→`onResult` は Server Action 実行に依存し、ブラウザのみの SB では不安定。**ロジックの継ぎ目はフックテストへ逃がす**（5章・7章本体の住み分け） | [useTicketForm.test](../src/features/tickets/hooks/useTicketForm.test.ts) + アクションの単体テスト |
+
+> **③と④の境界**：**汎用/表示コンポーネントのコールバック**（`FormDialog` の `onClose`）は play で `fn()` スパイが向く（速く・ブラウザの本物の操作で確認できる）。一方 **ドメインの送信結果**（`TicketForm` の `onResult` ＝ Action 実行込み）は Vitest のフックテストで見る。「見た目と操作」は Storybook、「ロジックの継ぎ目」は Vitest、という7章本体の住み分けに揃える。
+
+```tsx
+// ②+① の例：トリガーは canvas、ダイアログ中身は dialog() でスコープ。fixture は makeTicket。
+const canvas = within(canvasElement);
+await userEvent.click(canvas.getByRole("button", { name: "新規作成" }));
+await waitFor(() => expect(queryDialog()).toBeInTheDocument());
+await expect(dialog().getByLabelText(/タイトル/)).toBeInTheDocument(); // portal 内を誤マッチなく引く
+```
+
+> **なぜヘルパーに閉じ込めるのか**：`screen`（document 全体）と `within(canvasElement)`（canvas 内）の使い分けは **portal の有無**という実装詳細で決まり、新人が必ず詰まる。`dialog()` に隠せば play は「ダイアログの中の○○」という**意図**だけになり、詰まりどころが1か所に集約される。
+
+> **▶ 試す**：`npm run test:storybook` で TicketCreateDialog / TicketForm の play が走る（②①を使用）。
+
 > **✅ この章のチェック**
 > - □ そのロジック、ブラウザ無し（Vitest）で書けないか
 > - □ Story の play は Given/When/Then で書けているか
 > - □ カバレッジ対象（api/actions/hooks/lib/components）を満たすか
+> - □ フィクスチャ手書き / portal の screen 直引き / コールバックの間接確認になっていないか（①②③）
 
 ---
 

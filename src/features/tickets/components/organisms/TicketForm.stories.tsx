@@ -1,18 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, within } from "storybook/test";
 import { TicketForm } from "./TicketForm";
-import type { Ticket } from "../../types";
+import { makeTicket } from "../../test/makeTicket";
 
-const existing: Ticket = {
-  id: "t1",
-  title: "既存チケット",
-  description: "説明",
-  status: "IN_PROGRESS",
-  priority: "HIGH",
-  assigneeId: "u2",
-  createdAt: "2026-06-25T00:00:00.000Z",
-  updatedAt: "2026-06-25T00:00:00.000Z",
-};
+// フィクスチャは手書きせずファクトリから（差分だけ指定）。型変更に1か所で追従する。
+const existing = makeTicket({ title: "既存チケット" });
 
 const meta = {
   title: "tickets/organisms/TicketForm",

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { expect, screen, userEvent, waitFor } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import { TicketCreateDialog } from "./TicketCreateDialog";
+import { dialog, queryDialog } from "@/test/storybook";
 
 const meta = {
   title: "tickets/organisms/TicketCreateDialog",
@@ -11,22 +12,27 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const OpensAndCloses: Story = {
-  play: async ({ step }) => {
+  play: async ({ canvasElement, step }) => {
+    // トリガーボタンは canvas 内、ダイアログ中身は portal（document.body 直下）。
+    // → 前者は within(canvas)、後者は dialog() ヘルパーでスコープする（screen/canvas の使い分けを隠蔽）。
+    const canvas = within(canvasElement);
+
     await step("Given: 新規作成ボタンが表示される", async () => {
-      await expect(screen.getByRole("button", { name: "新規作成" })).toBeInTheDocument();
+      await expect(canvas.getByRole("button", { name: "新規作成" })).toBeInTheDocument();
     });
     await step("When: 新規作成を押す", async () => {
-      await userEvent.click(screen.getByRole("button", { name: "新規作成" }));
+      await userEvent.click(canvas.getByRole("button", { name: "新規作成" }));
     });
     await step("Then: ダイアログにフォームが開く", async () => {
-      await expect(await screen.findByText("新規チケット")).toBeInTheDocument();
-      await expect(screen.getByLabelText(/タイトル/)).toBeInTheDocument();
+      await waitFor(() => expect(queryDialog()).toBeInTheDocument());
+      await expect(dialog().getByText("新規チケット")).toBeInTheDocument();
+      await expect(dialog().getByLabelText(/タイトル/)).toBeInTheDocument();
     });
     await step("When: 閉じるを押す", async () => {
-      await userEvent.click(screen.getByRole("button", { name: "閉じる" }));
+      await userEvent.click(dialog().getByRole("button", { name: "閉じる" }));
     });
     await step("Then: ダイアログが閉じる", async () => {
-      await waitFor(() => expect(screen.queryByText("新規チケット")).not.toBeInTheDocument());
+      await waitFor(() => expect(queryDialog()).not.toBeInTheDocument());
     });
   },
 };
